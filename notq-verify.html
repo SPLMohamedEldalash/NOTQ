@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NOTQ | التحقق من الشهادة</title>
+<style>
+:root{
+  --bg:#f6f4fb;--card:#ffffff;--text:#2b2540;--muted:#6f6a85;--line:#e3dff0;
+  --brand:#5b3f9e;--brand-text:#ffffff;--ok:#1f8a4c;--ok-bg:#e7f6ed;--bad:#b3261e;--bad-bg:#fdecea;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#17141f;--card:#221e2e;--text:#efeaf9;--muted:#a49fba;--line:#363048;--brand:#9d83e0;--brand-text:#17141f;--ok:#5fd18b;--ok-bg:#16301f;--bad:#ff8a80;--bad-bg:#3a1a18}
+}
+:root[data-theme="dark"]{--bg:#17141f;--card:#221e2e;--text:#efeaf9;--muted:#a49fba;--line:#363048;--brand:#9d83e0;--brand-text:#17141f;--ok:#5fd18b;--ok-bg:#16301f;--bad:#ff8a80;--bad-bg:#3a1a18}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Tahoma,Arial,sans-serif;line-height:1.6}
+.wrap{max-width:520px;margin:0 auto;padding:24px 16px 40px}
+header{text-align:center;margin-bottom:20px}
+.logo{font-size:34px;font-weight:800;letter-spacing:2px;color:var(--brand)}
+.sub{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+h1{font-size:18px;margin:0 0 4px}
+p.hint{margin:0 0 14px;color:var(--muted);font-size:14px}
+.row{display:flex;gap:8px;direction:ltr}
+input{flex:1;min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font-size:16px;text-transform:uppercase}
+button{padding:12px 18px;border:0;border-radius:10px;background:var(--brand);color:var(--brand-text);font-size:16px;font-weight:700;cursor:pointer}
+#result{margin-top:18px}
+.badge{border-radius:12px;padding:12px 14px;font-weight:700;margin-bottom:12px}
+.ok{background:var(--ok-bg);color:var(--ok)}
+.bad{background:var(--bad-bg);color:var(--bad)}
+dl{margin:0}
+.item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+dt{color:var(--muted);font-size:14px;flex:none}
+dd{margin:0;font-weight:600;text-align:left;direction:ltr;overflow-wrap:anywhere}
+.note{margin-top:14px;font-size:13px;color:var(--muted);text-align:center}
+footer{margin-top:22px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">NOTQ</div>
+    <div class="sub">By Mohamed Eldalash · Speech &amp; Language Development &amp; Assessment</div>
+  </header>
+
+  <div class="card">
+    <h1>التحقق من صحة الشهادة<br><span class="sub" dir="ltr">Certificate Verification</span></h1>
+    <p class="hint">اكتب الرقم التسلسلي المطبوع على الشهادة، أو امسح الـ QR. مثال: NOTQ-2026-0001</p>
+    <div class="row">
+      <input id="num" placeholder="NOTQ-2026-0001" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button id="go" type="button">تحقق</button>
+    </div>
+    <div id="result" aria-live="polite"></div>
+  </div>
+
+  <footer>هذه الصفحة تعرض فقط الشهادات الصادرة عن منصة نطق (NOTQ).</footer>
+</div>
+
+<script>
+// ===== بيانات الشهادات: أضف سطر جديد لكل شهادة تصدرها =====
+// ملاحظة: اكتب الاسم بنفس الشكل المطبوع على الشهادة. اترك hours فاضي "" لو مش عايز تظهره.
+var CERTS = [
+  { id: "NOTQ-2026-0001", name: "Rawia Ismail Hamdy", course: "Arabic Language Delay Test (Abu Hseba)", date: "15 November 2026", hours: "" }
+];
+// ============================================================
+
+var input = document.getElementById("num");
+var box = document.getElementById("result");
+
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function check(raw){
+  var id = (raw || "").trim().toUpperCase();
+  if(!id){ box.innerHTML = ""; return; }
+  var c = null;
+  for(var i=0;i<CERTS.length;i++){ if(CERTS[i].id === id){ c = CERTS[i]; break; } }
+  if(!c){
+    box.innerHTML = '<div class="badge bad">✕ الشهادة غير مسجلة لدينا<br><span dir="ltr">Certificate not found</span></div>' +
+      '<div class="note">تأكد من كتابة الرقم بشكل صحيح. لو الرقم صحيح وما ظهرت الشهادة، تواصل مع المنصة.</div>';
+    return;
+  }
+  var h = '<div class="badge ok">✓ شهادة صحيحة وصادرة من منصة نطق (NOTQ)<br><span dir="ltr">Valid certificate issued by NOTQ Platform</span></div><dl>' +
+    '<div class="item"><dt>الاسم / Name</dt><dd>' + esc(c.name) + '</dd></div>' +
+    '<div class="item"><dt>الدورة / Course</dt><dd>' + esc(c.course) + '</dd></div>' +
+    '<div class="item"><dt>التاريخ / Date</dt><dd>' + esc(c.date) + '</dd></div>';
+  if(c.hours){ h += '<div class="item"><dt>الساعات / Hours</dt><dd>' + esc(c.hours) + '</dd></div>'; }
+  h += '<div class="item"><dt>الرقم / No.</dt><dd>' + esc(c.id) + '</dd></div></dl>';
+  box.innerHTML = h;
+}
+
+function run(){
+  var v = input.value.trim().toUpperCase();
+  try { if(v){ history.replaceState(null, "", "#" + v); } } catch(e){}
+  check(v);
+}
+
+document.getElementById("go").addEventListener("click", run);
+input.addEventListener("keydown", function(e){ if(e.key === "Enter"){ run(); } });
+
+function fromHash(){
+  var h = (location.hash || "").replace("#","");
+  if(h){ input.value = h.toUpperCase(); check(h); }
+}
+window.addEventListener("hashchange", fromHash);
+fromHash();
+</script>
+</body>
+</html>
